@@ -80,6 +80,14 @@ class Pool(Resource):
             if node not in self.nodes:
                 raise exceptions.NodeNotInPool(
                         '{} is not in pool {}'.format(node, self.pool_name))
+        if action == "disable":
+            if node not in self.nodes:
+                raise exceptions.NodeNotInPool(
+                        '{} is not in pool {}'.format(node, self.pool_name))
+        if action == "enable":
+            if node not in self.draining_nodes:
+                raise exceptions.ValidationError(
+                        '{} is not draining'.format(node))
 
     @property
     def draining_nodes(self):
@@ -89,11 +97,60 @@ class Pool(Resource):
         return self.details['properties']['basic']['draining']
 
     @property
+    def disabled_nodes(self):
+        """
+        Return a list of nodes disabled
+        """
+        return self.details['properties']['basic']['disabled']
+
+    @property
     def nodes(self):
         """
         Return a list of nodes in the pool
         """
         return self.details['properties']['basic']['nodes']
+
+    def disable_nodes(self, nodes=[]):
+        """
+        Given a list of nodes, put them in 'disabled' status
+
+        :param nodes: A list of nodes to disable
+        :type nodes: list
+        """
+        method = "PUT"
+        url = self.POOLS_BASE + "/{}".format(self.pool_name)
+        for node in nodes:
+            self._validate_node(node, action='disable')
+            self.details['properties']['basic']['disabled'].append(node)
+
+        # Send the updated config to the LB
+        resp, respbody =  self.manager.time_request(url,
+                                                    method,
+                                                    data=self.details)
+        # Validate response
+        if resp.status_code is not 200:
+            error = respbody['error_info']['basic']['disabled']['error_text']
+            raise exceptions.ValidationError('Disable Error: {}'.format(error))
+        else:
+            return respbody
+
+    def enable_nodes(self, nodes=[]):
+        """
+        Given a list of nodes, put them in 'active' status
+
+        :param nodes: A list of nodes to activate
+        :type nodes: list
+        """
+        method = "PUT"
+        url = self.POOLS_BASE + "/{}".format(self.pool_name)
+        for node in nodes:
+            self._validate_node(node, action='enable')
+            self.details['properties']['basic']['disabled'].remove(node)
+
+        # Send the updated config to the LB
+        return self.manager.time_request(url,
+                                         method,
+                                         data=self.details)
 
     def drain_nodes(self, nodes=[]):
         """
