@@ -19,12 +19,12 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='pyray',
-    version='0.1.0',
+    version='2016.3.12',
     description='A python client to interact with the Riverbed Stingray REST API.',
     long_description=readme + '\n\n' + history,
-    author='Matt Welch',
-    author_email='mwelch@tallshorts.com',
-    url='https://github.com/intr1nsic/pyray',
+    author='Originally by: Matt Welch, Forked by: Patrick W.',
+    author_email='mwelch@tallshorts.com,patwakeem@gmail.com',
+    url='https://github.com/patwakeem/pyray',
     packages=[
         'pyray',
     ],
