@@ -85,9 +85,9 @@ class Pool(Resource):
                 raise exceptions.NodeNotInPool(
                         '{} is not in pool {}'.format(node, self.pool_name))
         if action == "enable":
-            if node not in self.draining_nodes:
+            if node not in self.disabled_nodes:
                 raise exceptions.ValidationError(
-                        '{} is not draining'.format(node))
+                        '{} is not disabled'.format(node))
 
     @property
     def draining_nodes(self):
